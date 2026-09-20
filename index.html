@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorpresa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-pink-soft: #FADADD;
+            --color-white: #FFFFFF;
+            --color-text-main: #d84b6b;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            user-select: none;
+        }
+
+        /* Ocultar el log en producción para que se vea limpio, pero dejamos el código JS vivo por si acaso */
+        #debug-ui {
+            display: none;
+        }
+
+        /* === PANTALLA 1 === */
+        #bg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(120deg, #FADADD, #ffdde1, #FADADD);
+            background-size: 200% 200%;
+            animation: gradient-breathe 6s ease infinite;
+            z-index: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        @keyframes gradient-breathe {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* === PANTALLA 2 (HALO DORADO/ROSA) === */
+        #bg-halo {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* Le damos un toque más amarillo/cálido en el centro para resaltar las flores amarillas */
+            background: radial-gradient(circle at center, #fffde7 0%, #ffdde1 55%, #f8b195 100%);
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 2s ease;
+        }
+
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        .hidden { opacity: 0 !important; pointer-events: none; }
+
+        #screen-1 { z-index: 10; }
+
+        .name-text {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(4rem, 15vw, 8rem);
+            color: var(--color-text-main);
+            margin: 0 0 30px 0;
+            text-shadow: 0px 4px 15px rgba(216, 75, 107, 0.3);
+            animation: gentle-float 3s ease-in-out infinite alternate;
+            text-align: center;
+        }
+
+        @keyframes gentle-float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .btn-regalito {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            color: #d84b6b;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            padding: 15px 40px;
+            border: 2px solid #fff;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 117, 140, 0.3);
+            animation: pulse-btn 2s infinite;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-regalito::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg); animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; }
+        }
+
+        @keyframes pulse-btn {
+            0% { transform: scale(1); box-shadow: 0 10px 25px rgba(255, 117, 140, 0.3); }
+            50% { transform: scale(1.08); box-shadow: 0 15px 35px rgba(255, 117, 140, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 10px 25px rgba(255, 117, 140, 0.3); }
+        }
+        .btn-regalito:hover { transform: scale(1.1) !important; }
+
+        /* === PANTALLA 2 === */
+        #screen-2 { z-index: 5; opacity: 0; display: none; }
+        
+        #screen-2.visible { display: flex; } 
+        #screen-2.fade-in { opacity: 1; }
+
+        .spring-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            color: #d84b6b;
+            position: absolute; top: 1vh; /* Subido más arriba */
+            text-shadow: 0 2px 10px rgba(255,255,255,0.9), 0 0 20px rgba(255,215,0,0.5);
+            opacity: 0; transform: translateY(-20px);
+            transition: opacity 2s ease 1s, transform 2s ease 1s;
+        }
+        
+        #screen-2.show-title .spring-title {
+            opacity: 1; transform: translateY(0);
+        }
+
+        .polaroid-wrapper {
+            animation: float-polaroid 5s ease-in-out infinite alternate;
+            z-index: 10;
+            margin-top: 5vh; /* Bajamos la imagen para separarla de las letras */
+        }
+
+        .polaroid {
+            background: #fff;
+            padding: 15px 15px 15px 15px; /* Quitamos el texto de abajo de la polaroid para dejarla limpia */
+            border-radius: 6px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 0 40px rgba(255,215,0,0.3); /* Brillo dorado */
+            transform: scale(0) rotate(-15deg);
+            opacity: 0;
+            transition: transform 2.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 2s ease;
+            position: relative;
+        }
+
+        .polaroid img {
+            width: clamp(200px, 60vw, 380px);
+            height: clamp(200px, 60vw, 380px);
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #f0f0f0;
+            background-color: #fdfbfb;
+        }
+
+        .polaroid.bloom {
+            opacity: 1; transform: scale(1) rotate(3deg);
+        }
+
+        @keyframes float-polaroid {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-15px); }
+        }
+
+        .message-container {
+            position: absolute;
+            bottom: 4vh; /* Abajo en la pantalla para hacer espacio a la imagen */
+            width: 90%;
+            max-width: 600px;
+            height: 120px; /* Espacio reservado para que no salte el layout */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .msg {
+            position: absolute;
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            color: #b73855;
+            text-shadow: 0 2px 5px rgba(255,255,255,0.8);
+            text-align: center;
+            line-height: 1.2;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
+            pointer-events: none;
+            margin: 0;
+        }
+
+        /* === SISTEMA DE PÉTALOS === */
+        #particles-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 4; overflow: hidden;
+        }
+
+        .petal-wrapper { position: absolute; top: -50px; animation: fall linear forwards; }
+
+        .petal {
+            width: 100%; height: 100%;
+            border-radius: 15% 85% 15% 85%;
+            animation: sway 3s ease-in-out infinite alternate;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.6); /* Brillo más fuerte para que se sienta amarillo */
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(110vh); opacity: 0; }
+        }
+        @keyframes sway {
+            0% { transform: translateX(-35px) rotate(0deg) rotateX(15deg); }
+            100% { transform: translateX(35px) rotate(200deg) rotateX(60deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="debug-ui">Inicializando...</div>
+
+    <div id="bg-layer"></div>
+    <div id="bg-halo"></div>
+
+    <audio id="bg-audio" src="primavera.mp3" loop preload="auto"></audio>
+
+    <!-- Estado 1 -->
+    <div id="screen-1" class="screen">
+        <h1 class="name-text">hola male</h1>
+        <button id="btn-start" class="btn-regalito">❤️ regalito ❤️</button>
+    </div>
+
+    <!-- Estado 2 -->
+    <div id="screen-2" class="screen">
+        <h2 class="spring-title">feliz primavera 💛</h2>
+        <div class="polaroid-wrapper">
+            <div id="polaroid-frame" class="polaroid">
+                <!-- Imagen original que más te gustó -->
+                <img id="flor-img" src="ramo.jpg" alt="Ramo de flores amarillas">
+            </div>
+        </div>
+        
+        <!-- Mensajes Secuenciales -->
+        <div class="message-container">
+            <p id="msg-1" class="msg">"Como el lirio entre los espinos,<br>así es mi amada entre las jóvenes."</p>
+            <p id="msg-2" class="msg">"La casa y las riquezas son herencia de los padres,<br>pero la mujer prudente es un don del Señor."</p>
+        </div>
+
+        <div id="particles-container"></div>
+    </div>
+
+    <script>
+        const debugUI = document.getElementById('debug-ui');
+        function logToServer(msg) {
+            debugUI.innerText = msg;
+            console.log(msg);
+            fetch('/log', { method: 'POST', body: msg }).catch(() => {});
+        }
+
+        window.onerror = function(msg, url, line) {
+            logToServer(`EXCEPCION: ${msg} en linea ${line}`);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const florImg = document.getElementById('flor-img');
+            florImg.onload = () => logToServer("EXITO: Imagen ramo.jpg cargo correctamente.");
+            florImg.onerror = () => logToServer("ERROR FATAL: No se pudo cargar ramo.jpg.");
+
+            const screen1 = document.getElementById('screen-1');
+            const screen2 = document.getElementById('screen-2');
+            const btnStart = document.getElementById('btn-start');
+            const bgLayer = document.getElementById('bg-layer');
+            const bgHalo = document.getElementById('bg-halo');
+            const audio = document.getElementById('bg-audio');
+            const polaroidFrame = document.getElementById('polaroid-frame');
+            const particlesContainer = document.getElementById('particles-container');
+            const msg1 = document.getElementById('msg-1');
+            const msg2 = document.getElementById('msg-2');
+
+            let isStarted = false;
+
+            btnStart.addEventListener('click', () => {
+                if (isStarted) return;
+                isStarted = true;
+
+                // 1. Audio
+                audio.volume = 0.6;
+                audio.play().catch(err => logToServer(`ERROR AUDIO: ${err}`));
+
+                // 2. Transiciones de fondo
+                screen1.classList.add('hidden');
+                bgLayer.style.opacity = '0'; 
+                bgHalo.style.opacity = '1';  
+
+                setTimeout(() => {
+                    screen1.style.display = 'none'; 
+                    screen2.classList.add('visible'); 
+                    
+                    void screen2.offsetWidth; // Reflow
+
+                    screen2.classList.add('fade-in');
+                    screen2.classList.add('show-title'); 
+                    
+                    setTimeout(() => {
+                        polaroidFrame.classList.add('bloom');
+                        startParticleSystem();
+                        startMessageSequence();
+                    }, 200);
+
+                }, 800); 
+            });
+
+            // Secuencia de mensajes Bíblicos
+            function startMessageSequence() {
+                // Aparece el primer mensaje a los 2 segundos de que aparece la foto
+                setTimeout(() => {
+                    msg1.style.opacity = '1';
+                    
+                    // Se queda 6 segundos visible y luego se desvanece
+                    setTimeout(() => {
+                        msg1.style.opacity = '0';
+                        
+                        // Espera 2.5 segundos para que haya un momento de silencio visual, y muestra el segundo
+                        setTimeout(() => {
+                            msg2.style.opacity = '1';
+                        }, 2500);
+                        
+                    }, 6500); 
+
+                }, 2000);
+            }
+
+            function startParticleSystem() {
+                // Incrementar drásticamente la densidad de flores amarillas (cada 120ms)
+                setInterval(() => {
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('petal-wrapper');
+                    const petal = document.createElement('div');
+                    petal.classList.add('petal');
+                    
+                    const size = Math.random() * 20 + 10; 
+                    const leftPos = Math.random() * 100; 
+                    const fallDuration = Math.random() * 3 + 3; // Caen un poco más rápido 3s-6s
+                    
+                    const colors = [
+                        'linear-gradient(135deg, #FFD700, #FF8C00)', // Amarillo/Naranja súper fuerte
+                        'linear-gradient(135deg, #FFEB3B, #FBC02D)', // Amarillo puro
+                        'linear-gradient(135deg, #FFF176, #FFD54F)'  // Amarillo pastel dorado
+                    ];
+                    
+                    wrapper.style.left = `${leftPos}vw`;
+                    wrapper.style.width = `${size}px`;
+                    wrapper.style.height = `${size}px`;
+                    wrapper.style.animationDuration = `${fallDuration}s`;
+                    
+                    petal.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    petal.style.animationDuration = `${Math.random() * 2 + 1.5}s`;
+
+                    wrapper.appendChild(petal);
+                    particlesContainer.appendChild(wrapper);
+
+                    setTimeout(() => wrapper.remove(), (fallDuration + 1) * 1000);
+                }, 120);
+            }
+        });
+    </script>
+</body>
+</html>
